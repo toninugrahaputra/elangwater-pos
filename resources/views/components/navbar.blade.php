@@ -8,7 +8,7 @@
             <i data-lucide="droplet" class="w-6 h-6 text-zinc-900 fill-zinc-900/20"></i>
         </div>
         <div>
-            <h1 class="font-bold text-lg leading-tight tracking-tight">Elangwater POS & ERP</h1>
+            <h1 class="font-bold text-lg leading-tight tracking-tight">Elang Water POS & ERP</h1>
             <span class="text-xs text-zinc-500 font-medium">Sistem Informasi Penjualan & Distribusi Air</span>
         </div>
     </div>
@@ -37,7 +37,7 @@
         <!-- User Info -->
         <div class="flex items-center gap-3 border-l border-cream-dark pl-4">
             <div class="text-right hidden md:block">
-                <p id="user-display-name" class="text-sm font-semibold">Rakryan Alangwater</p>
+                <p id="user-display-name" class="text-sm font-semibold">Admin Elang Water</p>
                 <p id="user-display-role" class="text-[11px] text-zinc-500 font-medium">Administrator</p>
             </div>
             <div class="w-9 h-9 rounded-full bg-primary-light flex items-center justify-center font-bold text-primary-dark text-sm border border-primary">

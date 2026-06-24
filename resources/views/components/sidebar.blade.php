@@ -146,7 +146,7 @@
 
     <!-- Bottom Brand Info -->
     <div class="p-4 border-t border-cream-dark bg-cream/30 text-center">
-        <p class="text-xs font-semibold text-zinc-600">Elangwater POS v1.0</p>
+        <p class="text-xs font-semibold text-zinc-600">Elang Water POS v1.0</p>
         <p class="text-[10px] text-zinc-400 mt-0.5">© 2026 PT Elang Air Persada</p>
     </div>
 </aside>

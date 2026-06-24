@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Elangwater POS & ERP</title>
+    <title>Elang Water POS & ERP</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:300,400,500,600,700,800" rel="stylesheet" />
@@ -262,7 +262,7 @@
         // Simulating Roles & Permissions
         function changeRoleSim(role) {
             const roleInfo = {
-                admin: { name: 'Rakryan Alangwater', desc: 'Super Admin' },
+                admin: { name: 'Admin Elang Water', desc: 'Super Admin' },
                 kasir: { name: 'Lia Kasir', desc: 'Kasir POS' },
                 gudang: { name: 'Karno Staf Gudang', desc: 'Staf Gudang' },
                 distributor: { name: 'Budi Driver', desc: 'Sopir / Distribusi' }
