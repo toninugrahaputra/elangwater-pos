@@ -329,7 +329,7 @@ async function renderTransfers() {
             ${tf.status === 'pending' ? `<button onclick="approveTransfer(${tf.id})" class="bg-primary px-3 py-1 rounded font-bold text-[10px] text-zinc-900">Approve</button>` : '<span class="text-zinc-400">Selesai</span>'}
           </td>
         </tr>
-      `);
+      `;
     });
   } catch (error) {
     console.error('Error rendering transfers:', error);
@@ -358,7 +358,7 @@ async function renderIncomingStock() {
           <td class="py-3 px-4">${product.name} (${item.quantity} ${product.unit?.name || ''})</td>
           <td class="py-3 px-4 text-right"><span class="px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-bold text-[10px]">Diterima</span></td>
         </tr>
-      `);
+      `;
     });
   } catch (error) {
     console.error('Error rendering incoming stock:', error);
@@ -387,7 +387,7 @@ async function renderOutgoingStock() {
           <td class="py-3 px-4">${product.name} (${item.quantity} ${product.unit?.name || ''})</td>
           <td class="py-3 px-4 text-right"><span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-bold text-[10px]">Dikirim</span></td>
         </tr>
-      `);
+      `;
     });
   } catch (error) {
     console.error('Error rendering outgoing stock:', error);
@@ -423,7 +423,7 @@ async function renderKartuStok() {
           <td class="py-3 px-4 text-center">${qtyOut > 0 ? qtyOut : '-'}</td>
           <td class="py-3 px-4 text-right font-bold">0</td>
         </tr>
-      `);
+      `;
     });
   } catch (error) {
     console.error('Error rendering kartu stok:', error);
@@ -453,7 +453,7 @@ async function renderCustomers() {
             <button onclick="Swal.fire('Riwayat Belanja', 'Riwayat pembelian customer ini akan ditarik dari database di backend.', 'info')" class="text-primary-dark hover:underline font-bold text-xs">Riwayat</button>
           </td>
         </tr>
-      `);
+      `;
     });
   } catch (error) {
     console.error('Error rendering customers:', error);
@@ -483,7 +483,7 @@ async function renderSuppliers() {
             <button onclick="Swal.fire('Riwayat Transaksi', 'Menampilkan invoice pembelian dari supplier.', 'info')" class="text-primary-dark hover:underline font-bold text-xs">Transaksi</button>
           </td>
         </tr>
-      `);
+      `;
     });
   } catch (error) {
     console.error('Error rendering suppliers:', error);
@@ -516,7 +516,7 @@ async function renderPembelian() {
             ${p.status === 'pending' ? `<button onclick="receiveGoodsSim('${p.invoice_number}')" class="bg-primary text-[10px] font-bold px-3 py-1 rounded">Terima Barang</button>` : '<span class="text-zinc-400">Diterima</span>'}
           </td>
         </tr>
-      `);
+      `;
     });
   } catch (error) {
     console.error('Error rendering purchases:', error);
@@ -586,7 +586,7 @@ async function renderDashboard() {
             <button onclick="orderStockSim('${item.name}')" class="bg-primary hover:bg-primary-dark font-bold text-[10px] px-2 py-1 rounded">Reorder</button>
           </td>
         </tr>
-      `);
+      `;
     });
   } catch (error) {
     console.error('Error rendering dashboard:', error);
@@ -1482,47 +1482,7 @@ window.addEventListener('resize', () => {
   }
 });
 
-// Initialize other functions that were in the original file
-function renderPOSCatalog() {
-  try {
-    let grid = document.getElementById('pos-catalog-grid');
-    if (!grid) return;
 
-    grid.innerHTML = '';
-    state.products.filter(p => p.active).forEach(p => {
-      const productStocks = state.productStocks.filter(ps => ps.product_id === p.id);
-      let totalStock = productStocks.reduce((sum, ps) => sum + parseInt(ps.quantity || 0), 0);
-      let iconName = 'package';
-      if (p.category?.name?.toLowerCase() === 'galon') iconName = 'droplet';
-      else if (p.category?.name?.toLowerCase() === 'botol') iconName = 'glass-water';
-      else if (p.category?.name?.toLowerCase() === 'gelas') iconName = 'cup-soda';
-
-      grid.innerHTML += `
-        <div onclick="addToPOSCart(${p.id})" class="bg-white border border-cream-dark p-3 rounded-2xl cursor-pointer hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all flex flex-col justify-between h-full">
-          <div class="w-full aspect-square bg-white border border-cream-dark/30 rounded-xl mb-2 relative overflow-hidden flex items-center justify-center shrink-0">
-            <img src="${p.image || 'https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=300&q=80'}" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('flex');" class="w-full h-full object-contain p-2">
-            <div class="hidden absolute inset-0 bg-primary-light/30 flex flex-col items-center justify-center text-primary-dark/80">
-              <i data-lucide="${iconName}" class="w-8 h-8 fill-primary/10"></i>
-            </div>
-          </div>
-          <div class="flex-1 flex flex-col justify-between min-h-0">
-            <div class="space-y-0.5">
-              <span class="text-[9px] uppercase font-bold text-zinc-400 block">${p.category?.name || ''}</span>
-              <h4 class="font-bold text-xs leading-tight text-zinc-950 truncate" title="${p.name}">${p.name}</h4>
-            </div>
-            <div class="flex items-end justify-between mt-2 pt-2 border-t border-cream-dark/50">
-              <span class="font-black text-sm text-zinc-900">Rp ${(p.retail_price || 0).toLocaleString('id-ID')}</span>
-              <span class="text-[10px] font-bold ${totalStock <= 15 ? 'text-red-500 bg-red-50 px-1.5 py-0.5 rounded' : 'text-zinc-500'}">Stok: ${totalStock}</span>
-            </div>
-          </div>
-        </div>
-      `;
-    });
-    lucide.createIcons();
-  } catch (error) {
-    console.error('Error rendering POS catalog:', error);
-  }
-}
 
 function filterPOSCatalog() {
   let q = document.getElementById('pos-search-input').value.toLowerCase();
