@@ -1,0 +1,19 @@
+    'providers' => [
+
+        /*
+         * Application Service Providers...
+         */
+        App\Providers\AppServiceProvider::class,
+
+    ],
+
+    'providers' => [
+
+        /*
+         * Application Service Providers...
+         */
+        App\Providers\AppServiceProvider::class,
+
+    ],
+
+];

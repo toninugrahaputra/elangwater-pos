@@ -1,5 +1,5 @@
 <!-- SECTION 10: LAPORAN ANALITIS -->
-<div id="section-laporan" class="space-y-6 hidden">
+<div id="section-laporan" class="space-y-6 hidden" data-permission="reports.view">
     <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
             <h2 class="text-2xl font-extrabold tracking-tight">Laporan Analitis & Performance</h2>

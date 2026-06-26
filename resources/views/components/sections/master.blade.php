@@ -1,11 +1,11 @@
 <!-- SECTION 2: MASTER DATA - PRODUK -->
-<div id="section-master-produk" class="space-y-6 hidden">
+<div id="section-master-produk" class="space-y-6 hidden" data-permission="products.index">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-2xl font-extrabold tracking-tight">Data Produk & SKU</h2>
             <p class="text-zinc-500 text-sm mt-0.5">Kelola barang dagangan, barcode, satuan, dan skema harga dasar.</p>
         </div>
-        <button onclick="openAddProductModal()" class="bg-primary hover:bg-primary-dark text-zinc-900 font-bold px-4 py-2 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all hover:scale-105 active:scale-95">
+        <button onclick="openAddProductModal()" class="bg-primary hover:bg-primary-dark text-zinc-900 font-bold px-4 py-2 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all hover:scale-105 active:scale-95" data-permission="products.create">
             <i data-lucide="plus" class="w-4 h-4"></i> Tambah Produk Baru
         </button>
     </div>
@@ -54,7 +54,7 @@
 </div>
 
 <!-- SECTION 2.2: MASTER HARGA (Skema Harga) -->
-<div id="section-master-harga" class="space-y-6 hidden">
+<div id="section-master-harga" class="space-y-6 hidden" data-permission="products.index">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-2xl font-extrabold tracking-tight">Skema Level Harga</h2>
@@ -108,7 +108,7 @@
         </div>
 
         <div class="flex justify-end pt-4 border-t border-cream-dark">
-            <button onclick="Swal.fire('Berhasil', 'Konfigurasi Level Skema Harga Berhasil Diperbarui!', 'success')" class="bg-primary hover:bg-primary-dark text-zinc-900 font-bold px-6 py-2.5 rounded-xl text-xs transition-colors">
+            <button onclick="Swal.fire('Berhasil', 'Konfigurasi Level Skema Harga Berhasil Diperbarui!', 'success')" class="bg-primary hover:bg-primary-dark text-zinc-900 font-bold px-6 py-2.5 rounded-xl text-xs transition-colors" data-permission="products.edit">
                 Simpan Perubahan Skema
             </button>
         </div>
@@ -116,13 +116,13 @@
 </div>
 
 <!-- SECTION 2.3: MASTER KATEGORI -->
-<div id="section-master-kategori" class="space-y-6 hidden">
+<div id="section-master-kategori" class="space-y-6 hidden" data-permission="categories.index">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-2xl font-extrabold tracking-tight">Kategori Produk</h2>
             <p class="text-zinc-500 text-sm mt-0.5">Klasifikasikan produk Anda untuk memudahkan pencarian dan filter kasir.</p>
         </div>
-        <button onclick="addNewCategory()" class="bg-primary hover:bg-primary-dark text-zinc-900 font-bold px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+        <button onclick="addNewCategory()" class="bg-primary hover:bg-primary-dark text-zinc-900 font-bold px-4 py-2 rounded-xl text-sm flex items-center gap-2" data-permission="categories.create">
             <i data-lucide="plus" class="w-4 h-4"></i> Tambah Kategori
         </button>
     </div>
@@ -145,13 +145,13 @@
 </div>
 
 <!-- SECTION 2.4: MASTER BRAND -->
-<div id="section-master-brand" class="space-y-6 hidden">
+<div id="section-master-brand" class="space-y-6 hidden" data-permission="brands.index">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-2xl font-extrabold tracking-tight">Brand / Merek</h2>
             <p class="text-zinc-500 text-sm mt-0.5">Kelola brand produk air yang didistribusikan.</p>
         </div>
-        <button onclick="addNewBrand()" class="bg-primary hover:bg-primary-dark text-zinc-900 font-bold px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+        <button onclick="addNewBrand()" class="bg-primary hover:bg-primary-dark text-zinc-900 font-bold px-4 py-2 rounded-xl text-sm flex items-center gap-2" data-permission="brands.create">
             <i data-lucide="plus" class="w-4 h-4"></i> Tambah Brand
         </button>
     </div>
@@ -174,13 +174,13 @@
 </div>
 
 <!-- SECTION 2.5: MASTER SATUAN -->
-<div id="section-master-satuan" class="space-y-6 hidden">
+<div id="section-master-satuan" class="space-y-6 hidden" data-permission="units.index">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-2xl font-extrabold tracking-tight">Satuan Ukuran</h2>
             <p class="text-zinc-500 text-sm mt-0.5">Kelola satuan kemasan/volume (Pcs, Box, Galon, Kardus, Liter, ml).</p>
         </div>
-        <button onclick="addNewUnit()" class="bg-primary hover:bg-primary-dark text-zinc-900 font-bold px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+        <button onclick="addNewUnit()" class="bg-primary hover:bg-primary-dark text-zinc-900 font-bold px-4 py-2 rounded-xl text-sm flex items-center gap-2" data-permission="units.create">
             <i data-lucide="plus" class="w-4 h-4"></i> Tambah Satuan
         </button>
     </div>

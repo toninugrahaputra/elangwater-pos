@@ -20,6 +20,12 @@
     <!-- SweetAlert2 for Interactive UI Popups -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- User Permissions and Roles for Frontend Access Control -->
+    <script>
+        window.userPermissions = @json($user->permissions->pluck('name')->toArray());
+        window.userRoles = @json($user->roles->pluck('name')->toArray());
+    </script>
+
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -188,7 +194,70 @@
             if (setUserPane) setUserPane.style.display = 'grid';
             const setStrukPane = document.getElementById('set-struk');
             if (setStrukPane) setStrukPane.style.display = 'none';
+
+            // Apply access control based on user permissions
+            applyAccessControl();
+
+            // Fallback: if default dashboard is not accessible, find first accessible tab
+            const dashboardElement = document.getElementById('section-dashboard');
+            if (dashboardElement && dashboardElement.style.display !== 'none') {
+                // User can see dashboard - switch to it to ensure proper UI state
+                switchTab('dashboard');
+            } else {
+                // User cannot see dashboard - try to find first accessible tab
+                const priorityTabs = ['dashboard', 'laporan', 'sistem'];
+                let foundAccessibleTab = false;
+
+                for (const tab of priorityTabs) {
+                    const tabElement = document.getElementById(`section-${tab}`);
+                    if (tabElement && tabElement.style.display !== 'none') {
+                        // Found an accessible tab - switch to it
+                        switchTab(tab);
+                        foundAccessibleTab = true;
+                        break;
+                    }
+                }
+
+                // If no accessible tab found in priority list, we could show a message here
+                // For now, we'll leave it as is (will show empty screen, but that's the best we can do without modifying permissions)
+            }
         };
+
+        // Access Control Functions
+        function hasPermission(permission) {
+            return window.userPermissions && window.userPermissions.includes(permission);
+        }
+
+        function hasRole(role) {
+            return window.userRoles && window.userRoles.includes(role);
+        }
+
+        function applyAccessControl() {
+            // Hide/show elements based on permissions
+            document.querySelectorAll('[data-permission]').forEach(element => {
+                const permission = element.getAttribute('data-permission');
+                if (!hasPermission(permission)) {
+                    element.style.display = 'none';
+                }
+            });
+
+            // Hide/show elements based on roles
+            document.querySelectorAll('[data-role]').forEach(element => {
+                const role = element.getAttribute('data-role');
+                if (!hasRole(role)) {
+                    element.style.display = 'none';
+                }
+            });
+
+            // Disable interactive elements based on permissions
+            document.querySelectorAll('[data-permission-disabled]').forEach(element => {
+                const permission = element.getAttribute('data-permission-disabled');
+                if (!hasPermission(permission)) {
+                    element.disabled = true;
+                    element.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            });
+        }
 
         // Navigation
         function switchTab(tabId) {
@@ -558,7 +627,7 @@
                     </div>
                 `;
             });
-            lucide.createIcons();
+            lucide.createIcorns();
         }
 
         function clearPOSCart() {

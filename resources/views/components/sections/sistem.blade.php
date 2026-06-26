@@ -1,5 +1,5 @@
 <!-- SECTION 11: PENGATURAN SISTEM -->
-<div id="section-sistem" class="space-y-6 hidden">
+<div id="section-sistem" class="space-y-6 hidden" data-permission="settings.view" data-role="superadmin">
     <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
             <h2 class="text-2xl font-extrabold tracking-tight">Pengaturan Sistem & User</h2>
@@ -8,18 +8,18 @@
     </div>
 
     <!-- Inner Settings Tab Bar -->
-    <div class="bg-white p-1 rounded-xl border border-cream-dark flex flex-wrap gap-1">
-        <button onclick="switchSettingsSubTab(event, 'set-user')" id="btn-set-user" class="settings-subtab-btn px-4 py-2 text-xs font-bold rounded-lg transition-all bg-primary text-zinc-900 shadow-sm">User, Role & Audit Log</button>
-        <button onclick="switchSettingsSubTab(event, 'set-struk')" id="btn-set-struk" class="settings-subtab-btn px-4 py-2 text-xs font-bold rounded-lg transition-all text-zinc-600 hover:bg-cream">Pengaturan Struk & Notifikasi</button>
+    <div class="bg-white p-2 rounded-2xl border border-cream-dark flex flex-wrap gap-1">
+        <button onclick="switchSettingsSubTab(event, 'set-user')" id="btn-set-user" class="settings-subtab-btn px-5 py-3 text-xs font-bold rounded-lg transition-all bg-primary text-zinc-900 shadow-sm" data-permission="settings.view" data-role="superadmin">User, Role & Audit Log</button>
+        <button onclick="switchSettingsSubTab(event, 'set-struk')" id="btn-set-struk" class="settings-subtab-btn px-5 py-3 text-xs font-bold rounded-lg transition-all text-zinc-600 hover:bg-cream hover:text-zinc-900" data-permission="settings.view" data-role="superadmin">Pengaturan Struk & Notifikasi</button>
     </div>
 
     <!-- SUB-SETTING: USER, ROLE & AUDIT LOG -->
     <div id="set-user" class="grid grid-cols-1 lg:grid-cols-2 gap-6 settings-sub-pane">
         <!-- User & Role CRUD -->
-        <div class="bg-white border border-cream-dark p-5 rounded-2xl space-y-4">
+        <div class="bg-white border border-cream-dark p-5 rounded-2xl shadow-sm space-y-4">
             <div class="flex items-center justify-between">
                 <h3 class="font-bold text-sm">Manajemen User & Hak Akses</h3>
-                <button onclick="addNewUser()" class="bg-primary text-xs font-bold px-3 py-1.5 rounded-lg">Tambah User</button>
+                <button onclick="addNewUser()" class="bg-primary text-sm font-bold px-4 py-2 rounded-2xl hover:bg-primary-dark" data-permission="settings.view" data-role="superadmin">Tambah User</button>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full min-w-[640px] text-left text-xs">
@@ -41,7 +41,7 @@
         </div>
 
         <!-- Audit Log & Notifikasi Alert Manager -->
-        <div class="bg-white border border-cream-dark p-5 rounded-2xl space-y-4">
+        <div class="bg-white border border-cream-dark p-5 rounded-2xl shadow-sm space-y-4">
             <h3 class="font-bold text-sm border-b border-cream-dark pb-2">Audit Log Aktivitas Sistem Terakhir</h3>
             <div class="space-y-3 text-[11px] max-h-56 overflow-y-auto pr-1">
                 <div class="p-2 bg-cream/30 border-l-2 border-primary rounded">
@@ -64,7 +64,7 @@
     <div id="set-struk" class="settings-sub-pane hidden" style="display:none">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Form Pengaturan Struk -->
-            <div class="lg:col-span-2 bg-white border border-cream-dark p-5 rounded-2xl space-y-4">
+            <div class="lg:col-span-2 bg-white border border-cream-dark p-5 rounded-2xl shadow-sm space-y-4">
                 <h3 class="font-bold text-sm border-b border-cream-dark pb-2 flex items-center gap-2">
                     <i data-lucide="receipt" class="w-4 h-4 text-primary-dark"></i> Pengaturan Printer & Struk Belanja
                 </h3>
@@ -94,7 +94,7 @@
                     </div>
                     <div>
                         <label class="font-bold text-zinc-500 block mb-1">Upload File Logo Struk</label>
-                        <button onclick="Swal.fire('Upload File', 'Pilih file logo untuk struk belanja Anda', 'info')" class="bg-cream border border-cream-dark text-zinc-700 font-bold px-3 py-1.5 rounded-lg text-[10px] w-full flex items-center justify-center gap-1">
+                        <button onclick="Swal.fire('Upload File', 'Pilih file logo untuk struk belanja Anda', 'info')" class="bg-cream border border-cream-dark text-zinc-700 font-bold px-4 py-2 rounded-xl w-full flex items-center justify-center gap-1">
                             <i data-lucide="upload" class="w-3.5 h-3.5"></i> Pilih Gambar Logo
                         </button>
                     </div>
@@ -145,14 +145,14 @@
                 </div>
 
                 <div class="flex justify-end pt-3">
-                    <button onclick="saveReceiptSettingsSim()" class="bg-primary hover:bg-primary-dark text-zinc-900 font-bold px-6 py-2 rounded-xl text-xs">
+                    <button onclick="saveReceiptSettingsSim()" class="bg-primary hover:bg-primary-dark text-zinc-900 font-bold px-6 py-3 rounded-2xl text-xs" data-permission="settings.view" data-role="superadmin">
                         Simpan Semua Konfigurasi
                     </button>
                 </div>
             </div>
 
             <!-- Live Preview Struk (Interactive) -->
-            <div class="bg-white border border-cream-dark p-5 rounded-2xl space-y-4">
+            <div class="bg-white border border-cream-dark p-5 rounded-2xl shadow-sm space-y-4">
                 <h3 class="font-bold text-sm border-b border-cream-dark pb-2 flex items-center justify-between">
                     <span>Live Preview Struk</span>
                     <span id="preview-paper-size-badge" class="px-2 py-0.5 bg-zinc-200 text-zinc-700 rounded text-[9px] font-bold">58mm</span>

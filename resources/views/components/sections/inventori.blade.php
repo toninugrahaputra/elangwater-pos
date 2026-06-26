@@ -1,11 +1,11 @@
 <!-- SECTION 3: INVENTORI - GUDANG -->
-<div id="section-inv-gudang" class="space-y-6 hidden">
+<div id="section-inv-gudang" class="space-y-6 hidden" data-permission="warehouses.index">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-2xl font-extrabold tracking-tight">Multi Gudang / Cabang Depo</h2>
             <p class="text-zinc-500 text-sm mt-0.5">Pantau dan kelola multi gudang fisik penyimpanan air minum Anda.</p>
         </div>
-        <button onclick="addNewWarehouse()" class="bg-primary hover:bg-primary-dark text-zinc-900 font-bold px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+        <button onclick="addNewWarehouse()" class="bg-primary hover:bg-primary-dark text-zinc-900 font-bold px-5 py-3 rounded-2xl flex items-center gap-3" data-permission="warehouses.create">
             <i data-lucide="plus" class="w-4 h-4"></i> Tambah Gudang Baru
         </button>
     </div>
@@ -16,7 +16,7 @@
 </div>
 
 <!-- SECTION 3.2: STOK REAL TIME -->
-<div id="section-inv-stok" class="space-y-6 hidden">
+<div id="section-inv-stok" class="space-y-6 hidden" data-permission="product-stocks.index">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-2xl font-extrabold tracking-tight">Informasi Stok Real-Time</h2>
@@ -28,7 +28,7 @@
         <div class="overflow-x-auto">
             <table class="w-full min-w-[640px] text-left">
                 <thead>
-                    <tr class="border-b border-cream-dark text-xs text-zinc-500 uppercase font-bold bg-cream/40">
+                    <tr class="border-b border-cream-dark text-xs text-zinc-500 uppercase font-bold bg-cream/50">
                         <th class="py-3 px-4">Nama Produk</th>
                         <th class="py-3 px-4">Gudang</th>
                         <th class="py-3 px-4">Stok Aktual</th>
@@ -47,18 +47,18 @@
 </div>
 
 <!-- SECTION 3.3: INVENTORI - BARANG MASUK -->
-<div id="section-inv-masuk" class="space-y-6 hidden">
+<div id="section-inv-masuk" class="space-y-6 hidden" data-permission="stock-mutations.index">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-2xl font-extrabold tracking-tight">Barang Masuk</h2>
             <p class="text-zinc-500 text-sm mt-0.5">Catatan barang masuk baik dari Pembelian Supplier maupun dari Transfer Antar Gudang.</p>
         </div>
     </div>
-    <div class="bg-white border border-cream-dark rounded-xl p-6">
+    <div class="bg-white border border-cream-dark rounded-2xl p-6 shadow-sm">
         <div class="overflow-x-auto">
             <table class="w-full min-w-[640px] text-left">
                 <thead>
-                    <tr class="border-b border-cream-dark text-xs text-zinc-500 uppercase font-bold bg-cream/40">
+                    <tr class="border-b border-cream-dark text-xs text-zinc-500 uppercase font-bold bg-cream/50">
                         <th class="py-3 px-4">No. Referensi</th>
                         <th class="py-3 px-4">Tanggal Masuk</th>
                         <th class="py-3 px-4">Gudang Penerima</th>
@@ -76,18 +76,18 @@
 </div>
 
 <!-- SECTION 3.4: INVENTORI - BARANG KELUAR -->
-<div id="section-inv-keluar" class="space-y-6 hidden">
+<div id="section-inv-keluar" class="space-y-6 hidden" data-permission="stock-mutations.index">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-2xl font-extrabold tracking-tight">Barang Keluar</h2>
             <p class="text-zinc-500 text-sm mt-0.5">Catatan barang keluar karena transaksi Penjualan POS maupun Mutasi Gudang.</p>
         </div>
     </div>
-    <div class="bg-white border border-cream-dark rounded-xl p-6">
+    <div class="bg-white border border-cream-dark rounded-2xl p-6 shadow-sm">
         <div class="overflow-x-auto">
             <table class="w-full min-w-[640px] text-left">
                 <thead>
-                    <tr class="border-b border-cream-dark text-xs text-zinc-500 uppercase font-bold bg-cream/40">
+                    <tr class="border-b border-cream-dark text-xs text-zinc-500 uppercase font-bold bg-cream/50">
                         <th class="py-3 px-4">No. Transaksi / DO</th>
                         <th class="py-3 px-4">Tanggal Keluar</th>
                         <th class="py-3 px-4">Gudang Asal</th>
@@ -105,21 +105,21 @@
 </div>
 
 <!-- SECTION 3.5: INVENTORI - TRANSFER GUDANG -->
-<div id="section-inv-transfer" class="space-y-6 hidden">
+<div id="section-inv-transfer" class="space-y-6 hidden" data-permission="transfers.index">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-2xl font-extrabold tracking-tight">Transfer & Mutasi Antar Gudang</h2>
             <p class="text-zinc-500 text-sm mt-0.5">Kirim persediaan dari satu gudang ke gudang cabang/depo lainnya.</p>
         </div>
-        <button onclick="openTransferModal()" class="bg-primary hover:bg-primary-dark text-zinc-900 font-bold px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+        <button onclick="openTransferModal()" class="bg-primary hover:bg-primary-dark text-zinc-900 font-bold px-4 py-2 rounded-xl text-sm flex items-center gap-2" data-permission="transfers.create">
             <i data-lucide="refresh-cw" class="w-4 h-4"></i> Buat Transfer Baru
         </button>
     </div>
-    <div class="bg-white border border-cream-dark rounded-xl p-6">
+    <div class="bg-white border border-cream-dark rounded-2xl p-6 shadow-sm">
         <div class="overflow-x-auto">
             <table class="w-full min-w-[640px] text-left">
                 <thead>
-                    <tr class="border-b border-cream-dark text-xs text-zinc-500 uppercase font-bold bg-cream/40">
+                    <tr class="border-b border-cream-dark text-xs text-zinc-500 uppercase font-bold bg-cream/50">
                         <th class="py-3 px-4">No. Mutasi</th>
                         <th class="py-3 px-4">Gudang Asal</th>
                         <th class="py-3 px-4">Gudang Tujuan</th>
@@ -138,21 +138,21 @@
 </div>
 
 <!-- SECTION 3.6: STOCK OPNAME -->
-<div id="section-inv-opname" class="space-y-6 hidden">
+<div id="section-inv-opname" class="space-y-6 hidden" data-permission="stock-mutations.index">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-2xl font-extrabold tracking-tight">Stock Opname</h2>
             <p class="text-zinc-500 text-sm mt-0.5">Penyesuaian stok berkala antara stok fisik di gudang dengan catatan di sistem.</p>
         </div>
-        <button onclick="openOpnameModal()" class="bg-primary hover:bg-primary-dark text-zinc-900 font-bold px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+        <button onclick="openOpnameModal()" class="bg-primary hover:bg-primary-dark text-zinc-900 font-bold px-4 py-2 rounded-xl text-sm flex items-center gap-2" data-permission="stock-mutations.create">
             <i data-lucide="clipboard-list" class="w-4 h-4"></i> Buat Stock Opname
         </button>
     </div>
-    <div class="bg-white border border-cream-dark rounded-xl p-6">
+    <div class="bg-white border border-cream-dark rounded-2xl p-6 shadow-sm">
         <div class="overflow-x-auto">
             <table class="w-full min-w-[640px] text-left">
                 <thead>
-                    <tr class="border-b border-cream-dark text-xs text-zinc-500 uppercase font-bold bg-cream/40">
+                    <tr class="border-b border-cream-dark text-xs text-zinc-500 uppercase font-bold bg-cream/50">
                         <th class="py-3 px-4">No. Opname</th>
                         <th class="py-3 px-4">Gudang</th>
                         <th class="py-3 px-4">Item</th>
@@ -172,7 +172,7 @@
 </div>
 
 <!-- SECTION 3.7: KARTU STOK -->
-<div id="section-inv-kartustok" class="space-y-6 hidden">
+<div id="section-inv-kartustok" class="space-y-6 hidden" data-permission="product-stocks.index">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-2xl font-extrabold tracking-tight">Kartu Stok & Riwayat Mutasi</h2>
@@ -189,11 +189,11 @@
             </select>
         </div>
     </div>
-    <div class="bg-white border border-cream-dark rounded-xl p-6">
+    <div class="bg-white border border-cream-dark rounded-2xl p-6 shadow-sm">
         <div class="overflow-x-auto">
             <table class="w-full min-w-[640px] text-left">
                 <thead>
-                    <tr class="border-b border-cream-dark text-xs text-zinc-500 uppercase font-bold bg-cream/40">
+                    <tr class="border-b border-cream-dark text-xs text-zinc-500 uppercase font-bold bg-cream/50">
                         <th class="py-3 px-4">Tanggal & Jam</th>
                         <th class="py-3 px-4">Gudang</th>
                         <th class="py-3 px-4">SKU / Nama Produk</th>
