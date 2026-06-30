@@ -1,6 +1,6 @@
 // Base API URL
-const API_BASE_URL = 'http://elangwater-pos.test/api';
-
+// Ubah menjadi bersih seperti ini:
+const API_BASE_URL = 'http://127.0.0.1:8000/api';
 // Helper function for API requests with proper authentication and error handling
 function getCookie(name) {
   const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
@@ -176,7 +176,7 @@ async function renderProducts() {
             <p class="text-[10px] text-zinc-400 font-medium">Grosir: Rp ${(p.wholesale_price || 0).toLocaleString('id-ID')}</p>
           </td>
           <td class="py-4 px-6">
-            <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-bold text-[10px]">${p.active ? 'Aktif' : 'Tidak Aktif'}</span>
+            <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-bold text-[10px]">${p.status === 'active' ? 'Aktif' : 'Tidak Aktif'}</span>
           </td>
           <td class="py-4 px-6 text-right">
             <button onclick="deleteProduct(${p.id})" class="text-red-500 hover:text-red-700 font-bold">Hapus</button>
@@ -444,7 +444,7 @@ async function renderOutgoingStock() {
 async function renderKartuStok() {
   try {
     const mutations = await apiFetch('/stock-mutations');
-    
+
     let table = document.getElementById('kartu-stok-table-body');
     if (!table) return;
 
@@ -540,7 +540,7 @@ async function renderSuppliers() {
 async function renderPembelian() {
   try {
     const purchases = await apiFetch('/purchases');
-    
+
     let table = document.getElementById('po-table-body');
     if (!table) return;
 
@@ -645,7 +645,7 @@ function renderPOSCatalog() {
     if (!grid) return;
 
     grid.innerHTML = '';
-    state.products.filter(p => p.active).forEach(p => {
+    state.products.filter(p => p.status === 'active').forEach(p => {
       const productStocks = state.productStocks.filter(ps => ps.product_id === p.id);
       let totalStock = productStocks.reduce((sum, ps) => sum + parseInt(ps.quantity || 0), 0);
       let iconName = 'package';
@@ -880,7 +880,7 @@ async function deleteProduct(id) {
     await apiFetch(`/products/${id}`, {
       method: 'DELETE'
     });
-    
+
     await loadDashboardData();
     Swal.fire('Berhasil', 'Produk berhasil dihapus!', 'success');
   } catch (error) {
@@ -1663,7 +1663,7 @@ window.switchTab = window.switchTab || function(tabId) {
   }
 
   activeTab = tabId;
-  
+
   if (window.location.hash !== '#' + tabId) {
     window.location.hash = tabId;
   }

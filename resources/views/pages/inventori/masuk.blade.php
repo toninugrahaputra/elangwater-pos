@@ -1,0 +1,32 @@
+@extends('layouts.app')
+
+@section('content')
+<!-- SECTION 3.3: INVENTORI - BARANG MASUK -->
+<div id="section-inv-masuk" class="space-y-6" data-permission="stock-mutations.index">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h2 class="text-2xl font-extrabold tracking-tight">Barang Masuk</h2>
+            <p class="text-zinc-500 text-sm mt-0.5">Catatan barang masuk baik dari Pembelian Supplier maupun dari Transfer Antar Gudang.</p>
+        </div>
+    </div>
+    <div class="bg-white border border-cream-dark rounded-2xl p-6 shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full min-w-[640px] text-left">
+                <thead>
+                    <tr class="border-b border-cream-dark text-xs text-zinc-500 uppercase font-bold bg-cream/50">
+                        <th class="py-3 px-4">No. Referensi</th>
+                        <th class="py-3 px-4">Tanggal Masuk</th>
+                        <th class="py-3 px-4">Gudang Penerima</th>
+                        <th class="py-3 px-4">Sumber</th>
+                        <th class="py-3 px-4">Detail Item</th>
+                        <th class="py-3 px-4 text-right">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="text-xs divide-y divide-cream-dark" id="incoming-stock-table-body">
+                    <!-- filled dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@endsection

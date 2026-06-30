@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id" class="h-full">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -36,13 +37,16 @@
             width: 6px;
             height: 6px;
         }
+
         ::-webkit-scrollbar-track {
             background: #FCFAF6;
         }
+
         ::-webkit-scrollbar-thumb {
             background: #E2AD3B;
             border-radius: 4px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
             background: #F8C24E;
         }
@@ -73,6 +77,7 @@
         }
     </style>
 </head>
+
 <body class="h-screen bg-cream text-zinc-800 flex flex-col overflow-hidden">
 
     <!-- Top Navbar -->
@@ -162,7 +167,7 @@
         let activeTab = 'dashboard';
         let mobileSidebarOpen = false;
 
-        window.onload = function() {
+        window.onload = function () {
             lucide.createIcons();
             renderDashboard();
             renderProducts();
@@ -298,7 +303,7 @@
             }
 
             activeTab = tabId;
-            
+
             // Update URL Hash without triggering full reload
             if (window.location.hash !== '#' + tabId) {
                 window.location.hash = tabId;
@@ -2367,4 +2372,5 @@
         }
     </script>
 </body>
+
 </html>
