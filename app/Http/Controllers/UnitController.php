@@ -2,49 +2,75 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Unit;
+use App\Http\Requests\StoreUnitRequest;
+use App\Http\Requests\UpdateUnitRequest;
+use App\Http\Resources\UnitCollection;
+use App\Http\Resources\UnitResource;
+use App\Services\UnitService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class UnitController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(): JsonResponse
+    protected $unitService;
+
+    public function __construct(UnitService $unitService)
     {
-        $units = Unit::all();
+        $this->unitService = $unitService;
+    }
+
+    /**
+     * Display a listing of the units.
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $perPage = $request->query('per_page', 15);
+        $search = $request->query('search');
+
+        $query = $this->unitService->getQuery()
+            ->when($search, function ($query, $search) {
+                return $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('symbol', 'like', "%{$search}%");
+            })
+            ->orderBy('created_at', 'asc');
+
+        $units = $query->paginate($perPage);
+
         return response()->json([
             'success' => true,
-            'data' => $units
+            'data' => new UnitCollection($units),
+            'meta' => [
+                'current_page' => $units->currentPage(),
+                'from' => $units->firstItem(),
+                'last_page' => $units->lastPage(),
+                'path' => $units->path(),
+                'per_page' => $units->perPage(),
+                'to' => $units->lastItem(),
+                'total' => $units->total()
+            ]
         ]);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created unit in storage.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreUnitRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:50|unique:units,name',
-            'symbol' => 'required|string|max:10|unique:units,symbol',
-        ]);
-
-        $unit = Unit::create($validated);
+        $unit = $this->unitService->create($request->validated());
 
         return response()->json([
             'success' => true,
-            'data' => $unit,
+            'data' => new UnitResource($unit),
             'message' => 'Unit created successfully'
         ], 201);
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified unit.
      */
     public function show(string $id): JsonResponse
     {
-        $unit = Unit::find($id);
+        $unit = $this->unitService->find($id);
 
         if (!$unit) {
             return response()->json([
@@ -55,21 +81,17 @@ class UnitController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $unit
+            'data' => new UnitResource($unit)
         ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified unit in storage.
      */
-    public function update(Request $request, string $id): JsonResponse
+    public function update(UpdateUnitRequest $request, string $id): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:50|unique:units,name,' . $id,
-            'symbol' => 'required|string|max:10|unique:units,symbol,' . $id,
-        ]);
+        $unit = $this->unitService->update($id, $request->validated());
 
-        $unit = Unit::find($id);
         if (!$unit) {
             return response()->json([
                 'success' => false,
@@ -77,23 +99,21 @@ class UnitController extends Controller
             ], 404);
         }
 
-        $unit->update($validated);
-
         return response()->json([
             'success' => true,
-            'data' => $unit,
+            'data' => new UnitResource($unit),
             'message' => 'Unit updated successfully'
         ]);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified unit from storage.
      */
     public function destroy(string $id): JsonResponse
     {
-        $deleted = Unit::destroy($id);
+        $deleted = $this->unitService->delete($id);
 
-        if ($deleted === 0) {
+        if (!$deleted) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unit not found'

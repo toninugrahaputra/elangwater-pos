@@ -13,4 +13,6 @@ interface WarehouseRepositoryInterface
     public function update($id, array $data);
 
     public function delete($id);
+
+    public function getQuery();
 }

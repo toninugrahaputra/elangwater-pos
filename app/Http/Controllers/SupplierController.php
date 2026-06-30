@@ -2,127 +2,124 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreSupplierRequest;
+use App\Http\Requests\UpdateSupplierRequest;
+use App\Http\Resources\SupplierCollection;
+use App\Http\Resources\SupplierResource;
+use App\Services\SupplierService;
 use Illuminate\Http\Request;
-use App\Models\User; // Assuming suppliers are Users with a specific role
 use Illuminate\Http\JsonResponse;
 
 class SupplierController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(): JsonResponse
+    protected $supplierService;
+
+    public function __construct(SupplierService $supplierService)
     {
-        // Get users with supplier role
-        $suppliers = User::whereHas('roles', function($query) {
-            $query->where('name', 'supplier');
-        })->get();
+        $this->supplierService = $supplierService;
+    }
+
+    /**
+     * Display a listing of the suppliers.
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $perPage = $request->input('per_page', 15);
+        $search = $request->input('search');
+
+        $query = $this->supplierService->getQuery();
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('address', 'like', "%{$search}%")
+                  ->orWhere('contact_person', 'like', "%{$search}%");
+            });
+        }
+
+        $suppliers = $query->paginate($perPage)
+            ->appends(request()->query());
 
         return response()->json([
             'success' => true,
-            'data' => $suppliers
+            'data' => new SupplierCollection($suppliers)
         ]);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created supplier in storage.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreSupplierRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string',
-            'contact_person' => 'required|string|max:255',
-        ]);
-
-        $user = User::create($validated);
-
-        // Assign supplier role
-        $user->assignRole('supplier');
+        $supplier = $this->supplierService->create($request->validated());
 
         return response()->json([
             'success' => true,
-            'data' => $user,
+            'data' => new SupplierResource($supplier),
             'message' => 'Supplier created successfully'
         ], 201);
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified supplier.
      */
     public function show(string $id): JsonResponse
     {
-        $user = User::whereHas('roles', function($query) {
-            $query->where('name', 'supplier');
-        })->find($id);
+        $supplier = $this->supplierService->find($id);
 
-        if (!$user) {
+        if (!$supplier) {
             return response()->json([
                 'success' => false,
-                'message': 'Supplier not found'
+                'message' => 'Supplier not found'
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'data': $user
+            'data' => new SupplierResource($supplier)
         ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified supplier in storage.
      */
-    public function update(Request $request, string $id): JsonResponse
+    public function update(UpdateSupplierRequest $request, string $id): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id,
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string',
-            'contact_person' => 'required|string|max:255',
-        ]);
+        $supplier = $this->supplierService->update($id, $request->validated());
 
-        $user = User::whereHas('roles', function($query) {
-            $query->where('name', 'supplier');
-        })->find($id);
-
-        if (!$user) {
+        if (!$supplier) {
             return response()->json([
                 'success' => false,
-                'message': 'Supplier not found'
+                'message' => 'Supplier not found'
             ], 404);
         }
 
-        $user->update($validated);
-
         return response()->json([
             'success' => true,
-            'data': $user,
-            'message': 'Supplier updated successfully'
+            'data' => new SupplierResource($supplier),
+            'message' => 'Supplier updated successfully'
         ]);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified supplier from storage.
      */
     public function destroy(string $id): JsonResponse
     {
-        $deleted = User::whereHas('roles', function($query) {
-            $query->where('name', 'supplier');
-        })->destroy($id);
+        $deleted = $this->supplierService->delete($id);
 
-        if ($deleted === 0) {
+        if (!$deleted) {
             return response()->json([
                 'success' => false,
-                'message': 'Supplier not found'
+                'message' => 'Supplier not found'
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'message': 'Supplier deleted successfully'
+            'message' => 'Supplier deleted successfully'
         ]);
     }
 }

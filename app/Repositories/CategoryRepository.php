@@ -43,4 +43,9 @@ class CategoryRepository implements CategoryRepositoryInterface
     {
         return $this->model->destroy($id);
     }
+
+    public function getQuery()
+    {
+        return $this->model->newQuery();
+    }
 }

@@ -47,4 +47,9 @@ class ProductStockService
     {
         return $this->productStockRepository->updateStockByProductAndWarehouse($productId, $warehouseId, $quantity);
     }
+
+    public function getQuery()
+    {
+        return $this->productStockRepository->getQuery();
+    }
 }

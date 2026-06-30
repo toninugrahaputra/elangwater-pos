@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreWarehouseRequest;
+use App\Http\Requests\UpdateWarehouseRequest;
+use App\Http\Resources\WarehouseCollection;
+use App\Http\Resources\WarehouseResource;
 use App\Services\WarehouseService;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class WarehouseController extends Controller
 {
@@ -20,43 +22,50 @@ class WarehouseController extends Controller
     /**
      * Display a listing of the warehouses.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $warehouses = $this->warehouseService->all();
+        $perPage = $request->query('per_page', 15);
+        $search = $request->query('search');
+
+        $query = $this->warehouseService->getQuery()
+            ->when($search, function ($query, $search) {
+                return $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%")
+                    ->orWhere('address', 'like', "%{$search}%")
+                    ->orWhere('pic', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
+            })
+            ->orderBy('created_at', 'desc');
+
+        $warehouses = $query->paginate($perPage);
+
         return response()->json([
             'success' => true,
-            'data' => $warehouses
+            'data' => new WarehouseCollection($warehouses),
+            'meta' => [
+                'current_page' => $warehouses->currentPage(),
+                'from' => $warehouses->firstItem(),
+                'last_page' => $warehouses->lastPage(),
+                'path' => $warehouses->path(),
+                'per_page' => $warehouses->perPage(),
+                'to' => $warehouses->lastItem(),
+                'total' => $warehouses->total()
+            ]
         ]);
     }
 
     /**
      * Store a newly created warehouse in storage.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreWarehouseRequest $request): JsonResponse
     {
-        try {
-            $this->validateWarehouse($request);
+        $warehouse = $this->warehouseService->create($request->validated());
 
-            $warehouse = $this->warehouseService->create($request->all());
-
-            return response()->json([
-                'success' => true,
-                'data' => $warehouse,
-                'message' => 'Warehouse created successfully'
-            ], 201);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to create warehouse',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'data' => new WarehouseResource($warehouse),
+            'message' => 'Warehouse created successfully'
+        ], 201);
     }
 
     /**
@@ -75,45 +84,29 @@ class WarehouseController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $warehouse
+            'data' => new WarehouseResource($warehouse)
         ]);
     }
 
     /**
      * Update the specified warehouse in storage.
      */
-    public function update(Request $request, string $id): JsonResponse
+    public function update(UpdateWarehouseRequest $request, string $id): JsonResponse
     {
-        try {
-            $this->validateWarehouse($request, $id);
+        $warehouse = $this->warehouseService->update($id, $request->validated());
 
-            $warehouse = $this->warehouseService->update($id, $request->all());
-
-            if (!$warehouse) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Warehouse not found'
-                ], 404);
-            }
-
-            return response()->json([
-                'success' => true,
-                'data' => $warehouse,
-                'message' => 'Warehouse updated successfully'
-            ]);
-        } catch (ValidationException $e) {
+        if (!$warehouse) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to update warehouse',
-                'error' => $e->getMessage()
-            ], 500);
+                'message' => 'Warehouse not found'
+            ], 404);
         }
+
+        return response()->json([
+            'success' => true,
+            'data' => new WarehouseResource($warehouse),
+            'message' => 'Warehouse updated successfully'
+        ]);
     }
 
     /**
@@ -134,25 +127,5 @@ class WarehouseController extends Controller
             'success' => true,
             'message' => 'Warehouse deleted successfully'
         ]);
-    }
-
-    /**
-     * Validate warehouse data.
-     */
-    protected function validateWarehouse(Request $request, $id = null)
-    {
-        $rules = [
-            'name' => 'required|string|max:255',
-            'code' => 'required|string|max:50|unique:warehouses,code,' . ($id ?? ''),
-            'address' => 'nullable|string',
-            'pic' => 'nullable|string|max:100',
-            'phone' => 'nullable|string|max:20',
-        ];
-
-        $validator = Validator::make($request->all(), $rules);
-
-        if ($validator->fails()) {
-            throw new ValidationException($validator);
-        }
     }
 }

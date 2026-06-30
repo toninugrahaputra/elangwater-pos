@@ -43,4 +43,9 @@ class WarehouseRepository implements WarehouseRepositoryInterface
     {
         return $this->model->destroy($id);
     }
+
+    public function getQuery()
+    {
+        return $this->model->newQuery();
+    }
 }

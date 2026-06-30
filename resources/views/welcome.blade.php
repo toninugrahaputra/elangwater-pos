@@ -22,14 +22,15 @@
 
     <!-- User Permissions and Roles for Frontend Access Control -->
     <script>
-        window.userPermissions = @json($user->permissions->pluck('name')->toArray());
-        window.userRoles = @json($user->roles->pluck('name')->toArray());
+        window.userPermissions = @json($user->getAllPermissions()->pluck('name')->toArray());
+        window.userRoles = @json($user->getRoleNames()->toArray());
     </script>
 
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
+
         /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
@@ -198,28 +199,44 @@
             // Apply access control based on user permissions
             applyAccessControl();
 
-            // Fallback: if default dashboard is not accessible, find first accessible tab
-            const dashboardElement = document.getElementById('section-dashboard');
-            if (dashboardElement && dashboardElement.style.display !== 'none') {
-                // User can see dashboard - switch to it to ensure proper UI state
-                switchTab('dashboard');
-            } else {
-                // User cannot see dashboard - try to find first accessible tab
-                const priorityTabs = ['dashboard', 'laporan', 'sistem'];
-                let foundAccessibleTab = false;
+            // Determine the first visible section after access control, prioritizing URL Hash for refresh persistence
+            const initialTab = window.location.hash ? window.location.hash.substring(1) : null;
+            const initialTabElement = initialTab ? document.getElementById('section-' + initialTab) : null;
 
-                for (const tab of priorityTabs) {
-                    const tabElement = document.getElementById(`section-${tab}`);
-                    if (tabElement && tabElement.style.display !== 'none') {
-                        // Found an accessible tab - switch to it
-                        switchTab(tab);
-                        foundAccessibleTab = true;
-                        break;
+            if (initialTabElement && !initialTabElement.classList.contains('hidden')) {
+                switchTab(initialTab);
+            } else {
+                const dashboardElement = document.getElementById('section-dashboard');
+                if (dashboardElement && !dashboardElement.classList.contains('hidden')) {
+                    switchTab('dashboard');
+                } else {
+                    const priorityTabs = ['dashboard', 'laporan', 'sistem'];
+                    let foundAccessibleTab = false;
+
+                    for (const tab of priorityTabs) {
+                        const tabElement = document.getElementById(`section-${tab}`);
+                        if (tabElement && !tabElement.classList.contains('hidden')) {
+                            switchTab(tab);
+                            foundAccessibleTab = true;
+                            break;
+                        }
+                    }
+
+                    if (!foundAccessibleTab) {
+                        // No priority tab is visible yet. Try any accessible section.
+                        document.querySelectorAll('#workspace-content [id^="section-"]').forEach(section => {
+                            if (!foundAccessibleTab && !section.classList.contains('hidden')) {
+                                switchTab(section.id.replace('section-', ''));
+                                foundAccessibleTab = true;
+                            }
+                        });
                     }
                 }
+            }
 
-                // If no accessible tab found in priority list, we could show a message here
-                // For now, we'll leave it as is (will show empty screen, but that's the best we can do without modifying permissions)
+            // Fetch and render actual API data from the database
+            if (typeof window.loadDashboardData === 'function') {
+                window.loadDashboardData();
             }
         };
 
@@ -281,6 +298,12 @@
             }
 
             activeTab = tabId;
+            
+            // Update URL Hash without triggering full reload
+            if (window.location.hash !== '#' + tabId) {
+                window.location.hash = tabId;
+            }
+
             lucide.createIcons();
 
             if (mobileSidebarOpen) {

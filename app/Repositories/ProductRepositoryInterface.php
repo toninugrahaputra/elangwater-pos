@@ -19,4 +19,6 @@ interface ProductRepositoryInterface
     public function findByBarcode($barcode);
 
     public function getStock($productId, $warehouseId);
+
+    public function getQuery();
 }

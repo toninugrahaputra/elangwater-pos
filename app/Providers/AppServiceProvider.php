@@ -17,6 +17,14 @@ use App\Repositories\ProductStockRepositoryInterface;
 use App\Repositories\ProductStockRepository;
 use App\Repositories\StockMutationRepositoryInterface;
 use App\Repositories\StockMutationRepository;
+use App\Repositories\CustomerRepositoryInterface;
+use App\Repositories\CustomerRepository;
+use App\Repositories\SupplierRepositoryInterface;
+use App\Repositories\SupplierRepository;
+use App\Repositories\PurchaseRepositoryInterface;
+use App\Repositories\PurchaseRepository;
+use App\Repositories\UnitRepositoryInterface;
+use App\Repositories\UnitRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,6 +39,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(WarehouseRepositoryInterface::class, WarehouseRepository::class);
         $this->app->bind(ProductStockRepositoryInterface::class, ProductStockRepository::class);
         $this->app->bind(StockMutationRepositoryInterface::class, StockMutationRepository::class);
+        $this->app->bind(CustomerRepositoryInterface::class, CustomerRepository::class);
+        $this->app->bind(SupplierRepositoryInterface::class, SupplierRepository::class);
+        $this->app->bind(PurchaseRepositoryInterface::class, PurchaseRepository::class);
+        $this->app->bind(UnitRepositoryInterface::class, UnitRepository::class);
     }
 
     /**

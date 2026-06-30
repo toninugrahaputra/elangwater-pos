@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
+use App\Http\Resources\ProductCollection;
+use App\Http\Resources\ProductResource;
 use App\Services\ProductService;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
@@ -20,43 +22,49 @@ class ProductController extends Controller
     /**
      * Display a listing of the products.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $products = $this->productService->all();
+        $perPage = $request->query('per_page', 15);
+        $search = $request->query('search');
+
+        $query = $this->productService->getQuery()
+            ->with(['category', 'brand']) // eager load relationships
+            ->when($search, function ($query, $search) {
+                return $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('sku', 'like', "%{$search}%")
+                    ->orWhere('barcode', 'like', "%{$search}%");
+            })
+            ->orderBy('created_at', 'desc');
+
+        $products = $query->paginate($perPage);
+
         return response()->json([
             'success' => true,
-            'data' => $products
+            'data' => new ProductCollection($products),
+            'meta' => [
+                'current_page' => $products->currentPage(),
+                'from' => $products->firstItem(),
+                'last_page' => $products->lastPage(),
+                'path' => $products->path(),
+                'per_page' => $products->perPage(),
+                'to' => $products->lastItem(),
+                'total' => $products->total()
+            ]
         ]);
     }
 
     /**
      * Store a newly created product in storage.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreProductRequest $request): JsonResponse
     {
-        try {
-            $this->validateProduct($request);
+        $product = $this->productService->create($request->validated());
 
-            $product = $this->productService->create($request->all());
-
-            return response()->json([
-                'success' => true,
-                'data' => $product,
-                'message' => 'Product created successfully'
-            ], 201);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to create product',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'data' => new ProductResource($product),
+            'message' => 'Product created successfully'
+        ], 201);
     }
 
     /**
@@ -75,45 +83,29 @@ class ProductController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $product
+            'data' => new ProductResource($product)
         ]);
     }
 
     /**
      * Update the specified product in storage.
      */
-    public function update(Request $request, string $id): JsonResponse
+    public function update(UpdateProductRequest $request, string $id): JsonResponse
     {
-        try {
-            $this->validateProduct($request, $id);
+        $product = $this->productService->update($id, $request->validated());
 
-            $product = $this->productService->update($id, $request->all());
-
-            if (!$product) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Product not found'
-                ], 404);
-            }
-
-            return response()->json([
-                'success' => true,
-                'data' => $product,
-                'message' => 'Product updated successfully'
-            ]);
-        } catch (ValidationException $e) {
+        if (!$product) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to update product',
-                'error' => $e->getMessage()
-            ], 500);
+                'message' => 'Product not found'
+            ], 404);
         }
+
+        return response()->json([
+            'success' => true,
+            'data' => new ProductResource($product),
+            'message' => 'Product updated successfully'
+        ]);
     }
 
     /**
@@ -153,7 +145,7 @@ class ProductController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $product
+                'data' => new ProductResource($product)
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -181,7 +173,7 @@ class ProductController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $product
+                'data' => new ProductResource($product)
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -230,7 +222,7 @@ class ProductController extends Controller
                 'data' => $stock,
                 'message' => 'Stock updated successfully'
             ]);
-        } catch (ValidationException $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
@@ -242,34 +234,6 @@ class ProductController extends Controller
                 'message' => 'Failed to update stock',
                 'error' => $e->getMessage()
             ], 500);
-        }
-    }
-
-    /**
-     * Validate product data.
-     */
-    protected function validateProduct(Request $request, $id = null)
-    {
-        $rules = [
-            'sku' => 'required|string|max:50|unique:products,sku,' . ($id ?? ''),
-            'barcode' => 'nullable|string|max:50|unique:products,barcode,' . ($id ?? ''),
-            'name' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
-            'brand_id' => 'required|exists:brands,id',
-            'unit' => 'required|string|max:50',
-            'volume' => 'nullable|numeric|min:0',
-            'purchase_price' => 'required|numeric|min:0',
-            'retail_price' => 'required|numeric|min:0',
-            'wholesale_price' => 'required|numeric|min:0',
-            'agency_price' => 'nullable|numeric|min:0',
-            'minimum_stock' => 'nullable|integer|min:0',
-            'status' => 'in:active,inactive'
-        ];
-
-        $validator = Validator::make($request->all(), $rules);
-
-        if ($validator->fails()) {
-            throw new ValidationException($validator);
         }
     }
 }

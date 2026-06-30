@@ -19,4 +19,6 @@ interface ProductStockRepositoryInterface
     public function getStock($productId, $warehouseId);
 
     public function updateStockByProductAndWarehouse($productId, $warehouseId, $quantity);
+
+    public function getQuery();
 }

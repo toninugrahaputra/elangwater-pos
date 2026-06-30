@@ -37,4 +37,9 @@ class WarehouseService
     {
         return $this->warehouseRepository->delete($id);
     }
+
+    public function getQuery()
+    {
+        return $this->warehouseRepository->getQuery();
+    }
 }

@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\UpdateCategoryRequest;
+use App\Http\Resources\CategoryCollection;
+use App\Http\Resources\CategoryResource;
 use App\Services\CategoryService;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
@@ -20,43 +22,46 @@ class CategoryController extends Controller
     /**
      * Display a listing of the categories.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $categories = $this->categoryService->all();
+        $perPage = $request->query('per_page', 15);
+        $search = $request->query('search');
+
+        $query = $this->categoryService->getQuery()
+            ->when($search, function ($query, $search) {
+                return $query->where('name', 'like', "%{$search}%");
+            })
+            ->orderBy('created_at', 'desc');
+
+        $categories = $query->paginate($perPage);
+
         return response()->json([
             'success' => true,
-            'data' => $categories
+            'data' => new CategoryCollection($categories),
+            'meta' => [
+                'current_page' => $categories->currentPage(),
+                'from' => $categories->firstItem(),
+                'last_page' => $categories->lastPage(),
+                'path' => $categories->path(),
+                'per_page' => $categories->perPage(),
+                'to' => $categories->lastItem(),
+                'total' => $categories->total()
+            ]
         ]);
     }
 
     /**
      * Store a newly created category in storage.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreCategoryRequest $request): JsonResponse
     {
-        try {
-            $this->validateCategory($request);
+        $category = $this->categoryService->create($request->validated());
 
-            $category = $this->categoryService->create($request->all());
-
-            return response()->json([
-                'success' => true,
-                'data' => $category,
-                'message' => 'Category created successfully'
-            ], 201);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to create category',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'data' => new CategoryResource($category),
+            'message' => 'Category created successfully'
+        ], 201);
     }
 
     /**
@@ -75,45 +80,29 @@ class CategoryController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $category
+            'data' => new CategoryResource($category)
         ]);
     }
 
     /**
      * Update the specified category in storage.
      */
-    public function update(Request $request, string $id): JsonResponse
+    public function update(UpdateCategoryRequest $request, string $id): JsonResponse
     {
-        try {
-            $this->validateCategory($request, $id);
+        $category = $this->categoryService->update($id, $request->validated());
 
-            $category = $this->categoryService->update($id, $request->all());
-
-            if (!$category) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Category not found'
-                ], 404);
-            }
-
-            return response()->json([
-                'success' => true,
-                'data' => $category,
-                'message' => 'Category updated successfully'
-            ]);
-        } catch (ValidationException $e) {
+        if (!$category) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to update category',
-                'error' => $e->getMessage()
-            ], 500);
+                'message' => 'Category not found'
+            ], 404);
         }
+
+        return response()->json([
+            'success' => true,
+            'data' => new CategoryResource($category),
+            'message' => 'Category updated successfully'
+        ]);
     }
 
     /**
@@ -134,22 +123,5 @@ class CategoryController extends Controller
             'success' => true,
             'message' => 'Category deleted successfully'
         ]);
-    }
-
-    /**
-     * Validate category data.
-     */
-    protected function validateCategory(Request $request, $id = null)
-    {
-        $rules = [
-            'name' => 'required|string|max:255|unique:categories,name,' . ($id ?? ''),
-            'description' => 'nullable|string',
-        ];
-
-        $validator = Validator::make($request->all(), $rules);
-
-        if ($validator->fails()) {
-            throw new ValidationException($validator);
-        }
     }
 }

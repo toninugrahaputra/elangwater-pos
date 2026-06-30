@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreProductStockRequest;
+use App\Http\Requests\UpdateProductStockRequest;
+use App\Http\Resources\ProductStockCollection;
+use App\Http\Resources\ProductStockResource;
 use App\Services\ProductStockService;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class ProductStockController extends Controller
@@ -20,43 +22,46 @@ class ProductStockController extends Controller
     /**
      * Display a listing of the product stocks.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $productStocks = $this->productStockService->all();
+        $perPage = $request->input('per_page', 15);
+        $search = $request->input('search');
+
+        $query = $this->productStockService->getQuery();
+
+        if ($search) {
+            $query->whereHas('product', function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                      ->orWhere('sku', 'like', "%{$search}%")
+                      ->orWhere('barcode', 'like', "%{$search}%");
+            })->orWhereHas('warehouse', function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                      ->orWhere('code', 'like', "%{$search}%");
+            });
+        }
+
+        $productStocks = $query->with(['product', 'warehouse'])
+            ->paginate($perPage)
+            ->appends(request()->query());
+
         return response()->json([
             'success' => true,
-            'data' => $productStocks
+            'data' => new ProductStockCollection($productStocks)
         ]);
     }
 
     /**
      * Store a newly created product stock in storage.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreProductStockRequest $request): JsonResponse
     {
-        try {
-            $this->validateProductStock($request);
+        $productStock = $this->productStockService->create($request->validated());
 
-            $productStock = $this->productStockService->create($request->all());
-
-            return response()->json([
-                'success' => true,
-                'data' => $productStock,
-                'message' => 'Product stock created successfully'
-            ], 201);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to create product stock',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'data' => new ProductStockResource($productStock),
+            'message' => 'Product stock created successfully'
+        ], 201);
     }
 
     /**
@@ -75,45 +80,29 @@ class ProductStockController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $productStock
+            'data' => new ProductStockResource($productStock)
         ]);
     }
 
     /**
      * Update the specified product stock in storage.
      */
-    public function update(Request $request, string $id): JsonResponse
+    public function update(UpdateProductStockRequest $request, string $id): JsonResponse
     {
-        try {
-            $this->validateProductStock($request, $id);
+        $productStock = $this->productStockService->update($id, $request->validated());
 
-            $productStock = $this->productStockService->update($id, $request->all());
-
-            if (!$productStock) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Product stock not found'
-                ], 404);
-            }
-
-            return response()->json([
-                'success' => true,
-                'data' => $productStock,
-                'message' => 'Product stock updated successfully'
-            ]);
-        } catch (ValidationException $e) {
+        if (!$productStock) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to update product stock',
-                'error' => $e->getMessage()
-            ], 500);
+                'message' => 'Product stock not found'
+            ], 404);
         }
+
+        return response()->json([
+            'success' => true,
+            'data' => new ProductStockResource($productStock),
+            'message' => 'Product stock updated successfully'
+        ]);
     }
 
     /**
@@ -134,23 +123,5 @@ class ProductStockController extends Controller
             'success' => true,
             'message' => 'Product stock deleted successfully'
         ]);
-    }
-
-    /**
-     * Validate product stock data.
-     */
-    protected function validateProductStock(Request $request, $id = null)
-    {
-        $rules = [
-            'product_id' => 'required|exists:products,id',
-            'warehouse_id' => 'required|exists:warehouses,id',
-            'quantity' => 'required|integer|min:0'
-        ];
-
-        $validator = Validator::make($request->all(), $rules);
-
-        if ($validator->fails()) {
-            throw new ValidationException($validator);
-        }
     }
 }

@@ -37,4 +37,9 @@ class BrandService
     {
         return $this->brandRepository->delete($id);
     }
+
+    public function getQuery()
+    {
+        return $this->brandRepository->getQuery();
+    }
 }

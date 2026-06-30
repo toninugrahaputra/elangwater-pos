@@ -1,5 +1,56 @@
 // Base API URL
-const API_BASE_URL = '/api';
+const API_BASE_URL = 'http://elangwater-pos.test/api';
+
+// Helper function for API requests with proper authentication and error handling
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? decodeURIComponent(match[2]) : null;
+}
+
+async function apiFetch(endpoint, options = {}) {
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      credentials: 'include', // Important for Sanctum session authentication
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-XSRF-TOKEN': getCookie('XSRF-TOKEN'),
+        ...options.headers
+      },
+      ...options
+    });
+
+    // Handle authentication errors
+    if (response.status === 401) {
+      // Redirect to login page only if not already on the login page
+      if (!window.location.pathname.endsWith('/login')) {
+        window.location.href = '/login';
+      }
+      throw new Error('Unauthorized - Redirecting to login');
+    }
+
+    // Handle other HTTP errors
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch (e) {
+        // If response is not JSON, use status text
+        // errorMessage remains as set above
+      }
+      throw new Error(errorMessage);
+    }
+
+    // Return parsed JSON, automatically unwrap 'data' wrapper if present
+    const json = await response.json();
+    return json.hasOwnProperty('data') ? json.data : json;
+  } catch (error) {
+    // Network errors or our thrown errors
+    console.error('API Error:', error);
+    throw error;
+  }
+}
 
 // State management - will be populated from API
 let state = {
@@ -24,6 +75,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize Lucide icons
   lucide.createIcons();
 
+  // Bypass dashboard loading if we are on the login page to prevent infinite 401 loops
+  if (window.location.pathname.endsWith('/login')) {
+    return;
+  }
+
   // Load initial data
   loadDashboardData();
 
@@ -34,31 +90,31 @@ document.addEventListener('DOMContentLoaded', () => {
 // Load all initial data for the dashboard
 async function loadDashboardData() {
   try {
-    // Load all data in parallel
-    const [productsResponse, categoriesResponse, brandsResponse, unitsResponse,
-           warehousesResponse, productStocksResponse, stockMutationsResponse,
-           customersResponse, suppliersResponse] = await Promise.all([
-      fetch(`${API_BASE_URL}/products`),
-      fetch(`${API_BASE_URL}/categories`),
-      fetch(`${API_BASE_URL}/brands`),
-      fetch(`${API_BASE_URL}/units`),
-      fetch(`${API_BASE_URL}/warehouses`),
-      fetch(`${API_BASE_URL}/product-stocks`),
-      fetch(`${API_BASE_URL}/stock-mutations`),
-      fetch(`${API_BASE_URL}/customers`),
-      fetch(`${API_BASE_URL}/suppliers`)
+    // Load all data in parallel using apiFetch
+    const [products, categories, brands, units,
+           warehouses, productStocks, stockMutations,
+           customers, suppliers] = await Promise.all([
+      apiFetch('/products'),
+      apiFetch('/categories'),
+      apiFetch('/brands'),
+      apiFetch('/units'),
+      apiFetch('/warehouses'),
+      apiFetch('/product-stocks'),
+      apiFetch('/stock-mutations'),
+      apiFetch('/customers'),
+      apiFetch('/suppliers')
     ]);
 
-    // Parse responses
-    state.products = await productsResponse.json();
-    state.categories = await categoriesResponse.json();
-    state.brands = await brandsResponse.json();
-    state.units = await unitsResponse.json();
-    state.warehouses = await warehousesResponse.json();
-    state.productStocks = await productStocksResponse.json();
-    state.stockMutations = await stockMutationsResponse.json();
-    state.customers = await customersResponse.json();
-    state.suppliers = await suppliersResponse.json();
+    // Populate state
+    state.products = products;
+    state.categories = categories;
+    state.brands = brands;
+    state.units = units;
+    state.warehouses = warehouses;
+    state.productStocks = productStocks;
+    state.stockMutations = stockMutations;
+    state.customers = customers;
+    state.suppliers = suppliers;
 
     // Render all components
     renderAllComponents();
@@ -93,8 +149,7 @@ function renderAllComponents() {
 // Product Management Functions
 async function renderProducts() {
   try {
-    const response = await fetch(`${API_BASE_URL}/products`);
-    state.products = await response.json();
+    state.products = await apiFetch('/products');
 
     let table = document.getElementById('master-produk-table-body');
     if (!table) return;
@@ -138,8 +193,7 @@ async function renderProducts() {
 
 async function renderCategories() {
   try {
-    const response = await fetch(`${API_BASE_URL}/categories`);
-    state.categories = await response.json();
+    state.categories = await apiFetch('/categories');
 
     let table = document.getElementById('category-table-body');
     if (!table) return;
@@ -167,8 +221,7 @@ async function renderCategories() {
 
 async function renderBrands() {
   try {
-    const response = await fetch(`${API_BASE_URL}/brands`);
-    state.brands = await response.json();
+    state.brands = await apiFetch('/brands');
 
     let table = document.getElementById('brand-table-body');
     if (!table) return;
@@ -196,8 +249,7 @@ async function renderBrands() {
 
 async function renderUnits() {
   try {
-    const response = await fetch(`${API_BASE_URL}/units`);
-    state.units = await response.json();
+    state.units = await apiFetch('/units');
 
     let table = document.getElementById('unit-table-body');
     if (!table) return;
@@ -223,8 +275,7 @@ async function renderUnits() {
 // Warehouse Management Functions
 async function renderWarehouses() {
   try {
-    const response = await fetch(`${API_BASE_URL}/warehouses`);
-    state.warehouses = await response.json();
+    state.warehouses = await apiFetch('/warehouses');
 
     let container = document.getElementById('warehouse-grid');
     if (!container) return;
@@ -254,8 +305,7 @@ async function renderWarehouses() {
 
 async function renderStockTable() {
   try {
-    const response = await fetch(`${API_BASE_URL}/product-stocks`);
-    state.productStocks = await response.json();
+    state.productStocks = await apiFetch('/product-stocks');
 
     const table = document.getElementById('realtime-stock-table-body');
     if (!table) return;
@@ -302,8 +352,7 @@ async function renderStockTable() {
 // Stock Mutation Functions
 async function renderTransfers() {
   try {
-    const response = await fetch(`${API_BASE_URL}/stock-mutations?type=transfer`);
-    const transfers = await response.json();
+    const transfers = await apiFetch('/stock-mutations?type=transfer');
 
     let table = document.getElementById('transfer-stock-table-body');
     if (!table) return;
@@ -338,8 +387,7 @@ async function renderTransfers() {
 
 async function renderIncomingStock() {
   try {
-    const response = await fetch(`${API_BASE_URL}/stock-mutations?type=incoming`);
-    const incoming = await response.json();
+    const incoming = await apiFetch('/stock-mutations?type=incoming');
 
     let table = document.getElementById('incoming-stock-table-body');
     if (!table) return;
@@ -367,8 +415,7 @@ async function renderIncomingStock() {
 
 async function renderOutgoingStock() {
   try {
-    const response = await fetch(`${API_BASE_URL}/stock-mutations?type=outgoing`);
-    const outgoing = await response.json();
+    const outgoing = await apiFetch('/stock-mutations?type=outgoing');
 
     let table = document.getElementById('outgoing-stock-table-body');
     if (!table) return;
@@ -396,9 +443,8 @@ async function renderOutgoingStock() {
 
 async function renderKartuStok() {
   try {
-    const response = await fetch(`${API_BASE_URL}/stock-mutations`);
-    const mutations = await response.json();
-
+    const mutations = await apiFetch('/stock-mutations');
+    
     let table = document.getElementById('kartu-stok-table-body');
     if (!table) return;
 
@@ -433,8 +479,8 @@ async function renderKartuStok() {
 // Customer Management Functions
 async function renderCustomers() {
   try {
-    const response = await fetch(`${API_BASE_URL}/customers`);
-    state.customers = await response.json();
+    const customers = await apiFetch('/customers');
+    state.customers = customers;
 
     let table = document.getElementById('customer-table-body');
     if (!table) return;
@@ -463,8 +509,8 @@ async function renderCustomers() {
 // Supplier Management Functions
 async function renderSuppliers() {
   try {
-    const response = await fetch(`${API_BASE_URL}/suppliers`);
-    state.suppliers = await response.json();
+    const suppliers = await apiFetch('/suppliers');
+    state.suppliers = suppliers;
 
     let table = document.getElementById('supplier-table-body');
     if (!table) return;
@@ -493,9 +539,8 @@ async function renderSuppliers() {
 // Purchase Management Functions
 async function renderPembelian() {
   try {
-    const response = await fetch(`${API_BASE_URL}/purchases`);
-    const purchases = await response.json();
-
+    const purchases = await apiFetch('/purchases');
+    
     let table = document.getElementById('po-table-body');
     if (!table) return;
 
@@ -798,7 +843,7 @@ async function saveProduct(e) {
       image: formData.get('image') || 'https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=300&q=80'
     };
 
-    const response = await fetch(`${API_BASE_URL}/products`, {
+    const newProduct = await apiFetch('/products', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -806,12 +851,6 @@ async function saveProduct(e) {
       },
       body: JSON.stringify(data)
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const newProduct = await response.json();
 
     // Close modal
     const modal = document.getElementById('add-product-modal');
@@ -838,14 +877,10 @@ async function deleteProduct(id) {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+    await apiFetch(`/products/${id}`, {
       method: 'DELETE'
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
+    
     await loadDashboardData();
     Swal.fire('Berhasil', 'Produk berhasil dihapus!', 'success');
   } catch (error) {
@@ -1413,45 +1448,33 @@ function saveReceiptSettingsSim() {
   Swal.fire('Berhasil', 'Pengaturan struk dan notifikasi berhasil disimpan.', 'success');
 }
 
-// Initialize the app when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-  // Initialize Lucide icons
+// Set up workspace tab switching (copied from original)
+window.switchTab = function(tabId) {
+  document.querySelectorAll('#workspace-content [id^="section-"]').forEach(div => div.classList.add('hidden'));
+
+  let targetDiv = document.getElementById('section-' + tabId);
+  if (targetDiv) {
+    targetDiv.classList.remove('hidden');
+  }
+
+  // Remove active classes from navigation items
+  document.querySelectorAll('#main-navigation button').forEach(btn => {
+    btn.className = btn.className.replace('bg-primary text-zinc-900 shadow-sm border border-primary/20', 'text-zinc-700 hover:text-zinc-900');
+  });
+
+  // Set active class on main menu buttons if applicable
+  let mainNavBtn = document.getElementById('nav-' + tabId.split('-')[0]);
+  if (mainNavBtn) {
+    mainNavBtn.className = "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all hover:bg-cream bg-primary text-zinc-900 shadow-sm border border-primary/20";
+  }
+
+  activeTab = tabId;
   lucide.createIcons();
 
-  // Load initial data
-  loadDashboardData();
-
-  // Set up event listeners for form submissions if needed
-  setupFormListeners();
-
-  // Set up workspace tab switching (copied from original)
-  window.switchTab = function(tabId) {
-    document.querySelectorAll('#workspace-content [id^="section-"]').forEach(div => div.classList.add('hidden'));
-
-    let targetDiv = document.getElementById('section-' + tabId);
-    if (targetDiv) {
-      targetDiv.classList.remove('hidden');
-    }
-
-    // Remove active classes from navigation items
-    document.querySelectorAll('#main-navigation button').forEach(btn => {
-      btn.className = btn.className.replace('bg-primary text-zinc-900 shadow-sm border border-primary/20', 'text-zinc-700 hover:text-zinc-900');
-    });
-
-    // Set active class on main menu buttons if applicable
-    let mainNavBtn = document.getElementById('nav-' + tabId.split('-')[0]);
-    if (mainNavBtn) {
-      mainNavBtn.className = "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all hover:bg-cream bg-primary text-zinc-900 shadow-sm border border-primary/20";
-    }
-
-    activeTab = tabId;
-    lucide.createIcons();
-
-    if (mobileSidebarOpen) {
-      closeMobileSidebar();
-    }
-  };
-});
+  if (mobileSidebarOpen) {
+    closeMobileSidebar();
+  }
+};
 
 // Initialize sidebar and mobile menu functions (copied from original)
 function toggleMobileSidebar() {
@@ -1582,17 +1605,12 @@ function populateSelects() {
   });
 }
 
-// Initialize selects after data loads
-document.addEventListener('DOMContentLoaded', async () => {
-  await loadDashboardData();
-  populateSelects();
-});
-
 // Export functions for use in HTML windows
 window.saveProduct = saveProduct;
 window.deleteProduct = deleteProduct;
 window.saveCategory = saveCategory;
 window.deleteCategory = deleteCategory;
+window.loadDashboardData = loadDashboardData;
 window.saveBrand = saveBrand;
 window.deleteBrand = deleteBrand;
 window.saveUnit = saveUnit;
@@ -1645,6 +1663,11 @@ window.switchTab = window.switchTab || function(tabId) {
   }
 
   activeTab = tabId;
+  
+  if (window.location.hash !== '#' + tabId) {
+    window.location.hash = tabId;
+  }
+
   lucide.createIcons();
 
   if (mobileSidebarOpen) {

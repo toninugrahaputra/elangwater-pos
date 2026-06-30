@@ -2,62 +2,72 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreCustomerRequest;
+use App\Http\Requests\UpdateCustomerRequest;
+use App\Http\Resources\CustomerCollection;
+use App\Http\Resources\CustomerResource;
+use App\Services\CustomerService;
 use Illuminate\Http\Request;
-use App\Models\User; // Assuming customers are Users with a specific role
 use Illuminate\Http\JsonResponse;
 
 class CustomerController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(): JsonResponse
+    protected $customerService;
+
+    public function __construct(CustomerService $customerService)
     {
-        // Get users with customer role
-        $customers = User::whereHas('roles', function($query) {
-            $query->where('name', 'customer');
-        })->get();
+        $this->customerService = $customerService;
+    }
+
+    /**
+     * Display a listing of the customers.
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $perPage = $request->input('per_page', 15);
+        $search = $request->input('search');
+
+        $query = $this->customerService->getQuery();
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        $customers = $query->paginate($perPage)
+            ->appends(request()->query());
 
         return response()->json([
             'success' => true,
-            'data' => $customers
+            'data' => new CustomerCollection($customers)
         ]);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created customer in storage.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreCustomerRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string',
-        ]);
-
-        $user = User::create($validated);
-
-        // Assign customer role
-        $user->assignRole('customer');
+        $customer = $this->customerService->create($request->validated());
 
         return response()->json([
             'success' => true,
-            'data' => $user,
+            'data' => new CustomerResource($customer),
             'message' => 'Customer created successfully'
         ], 201);
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified customer.
      */
     public function show(string $id): JsonResponse
     {
-        $user = User::whereHas('roles', function($query) {
-            $query->where('name', 'customer');
-        })->find($id);
+        $customer = $this->customerService->find($id);
 
-        if (!$user) {
+        if (!$customer) {
             return response()->json([
                 'success' => false,
                 'message' => 'Customer not found'
@@ -66,61 +76,48 @@ class CustomerController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $user
+            'data' => new CustomerResource($customer)
         ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified customer in storage.
      */
-    public function update(Request $request, string $id): JsonResponse
+    public function update(UpdateCustomerRequest $request, string $id): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id,
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string',
-        ]);
+        $customer = $this->customerService->update($id, $request->validated());
 
-        $user = User::whereHas('roles', function($query) {
-            $query->where('name', 'customer');
-        })->find($id);
-
-        if (!$user) {
+        if (!$customer) {
             return response()->json([
                 'success' => false,
                 'message' => 'Customer not found'
             ], 404);
         }
 
-        $user->update($validated);
-
         return response()->json([
             'success' => true,
-            'data' => $user,
+            'data' => new CustomerResource($customer),
             'message' => 'Customer updated successfully'
         ]);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified customer from storage.
      */
     public function destroy(string $id): JsonResponse
     {
-        $deleted = User::whereHas('roles', function($query) {
-            $query->where('name', 'customer');
-        })->destroy($id);
+        $deleted = $this->customerService->delete($id);
 
-        if ($deleted === 0) {
+        if (!$deleted) {
             return response()->json([
                 'success' => false,
-                'message': 'Customer not found'
+                'message' => 'Customer not found'
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'message': 'Customer deleted successfully'
+            'message' => 'Customer deleted successfully'
         ]);
     }
 }

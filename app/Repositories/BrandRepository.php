@@ -43,4 +43,9 @@ class BrandRepository implements BrandRepositoryInterface
     {
         return $this->model->destroy($id);
     }
+
+    public function getQuery()
+    {
+        return $this->model->newQuery();
+    }
 }

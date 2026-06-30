@@ -64,4 +64,9 @@ class ProductStockRepository implements ProductStockRepositoryInterface
 
         return $stock;
     }
+
+    public function getQuery()
+    {
+        return $this->model->newQuery();
+    }
 }

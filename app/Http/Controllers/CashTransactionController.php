@@ -38,7 +38,7 @@ class CashTransactionController extends Controller
 
         return response()->json([
             'success' => true,
-            'message': 'Cash transaction created successfully'
+            'message' => 'Cash transaction created successfully'
         ], 201);
     }
 
@@ -51,7 +51,7 @@ class CashTransactionController extends Controller
         // For now, returning not found as placeholder
         return response()->json([
             'success' => false,
-            'message': 'Cash transaction not found'
+            'message' => 'Cash transaction not found'
         ], 404);
     }
 
@@ -64,7 +64,7 @@ class CashTransactionController extends Controller
         // For now, returning not found as placeholder
         return response()->json([
             'success' => false,
-            'message': 'Cash transaction not found'
+            'message' => 'Cash transaction not found'
         ], 404);
     }
 
@@ -77,7 +77,7 @@ class CashTransactionController extends Controller
         // For now, returning not found as placeholder
         return response()->json([
             'success' => false,
-            'message': 'Cash transaction not found'
+            'message' => 'Cash transaction not found'
         ], 404);
     }
 }

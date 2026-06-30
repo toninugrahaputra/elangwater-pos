@@ -2,61 +2,44 @@
 
 namespace App\Services;
 
-use App\Models\Unit;
-use Illuminate\Database\Eloquent\Collection;
+use App\Repositories\UnitRepositoryInterface;
 
 class UnitService
 {
-    /**
-     * Get all units.
-     */
-    public function all(): Collection
+    protected $unitRepository;
+
+    public function __construct(UnitRepositoryInterface $unitRepository)
     {
-        return Unit::all();
+        $this->unitRepository = $unitRepository;
     }
 
-    /**
-     * Create a new unit.
-     */
-    public function create(array $data): Unit
+    public function all()
     {
-        return Unit::create($data);
+        return $this->unitRepository->all();
     }
 
-    /**
-     * Find a unit by ID.
-     */
-    public function find(string $id): ?Unit
+    public function find($id)
     {
-        return Unit::find($id);
+        return $this->unitRepository->find($id);
     }
 
-    /**
-     * Update a unit.
-     */
-    public function update(string $id, array $data): ?Unit
+    public function create(array $data)
     {
-        $unit = $this->find($id);
-
-        if (!$unit) {
-            return null;
-        }
-
-        $unit->update($data);
-        return $unit;
+        return $this->unitRepository->create($data);
     }
 
-    /**
-     * Delete a unit.
-     */
-    public function delete(string $id): bool
+    public function update($id, array $data)
     {
-        $unit = $this->find($id);
+        return $this->unitRepository->update($id, $data);
+    }
 
-        if (!$unit) {
-            return false;
-        }
+    public function delete($id)
+    {
+        return $this->unitRepository->delete($id);
+    }
 
-        return $unit->delete() > 0;
+    public function getQuery()
+    {
+        return $this->unitRepository->getQuery();
     }
 }
