@@ -1,6 +1,6 @@
 // Base API URL
 // Ubah menjadi bersih seperti ini:
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+const API_BASE_URL = 'http://elangwater-pos.test/api'||'http://localhost:8000/api'; // Ganti dengan URL API Anda
 // Helper function for API requests with proper authentication and error handling
 function getCookie(name) {
   const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
